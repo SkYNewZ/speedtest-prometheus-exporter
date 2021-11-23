@@ -1,0 +1,23 @@
+version: "3"
+
+vars:
+  IMAGE: skynewz/speedtest-prometheus-exporter
+  REGISTRY: docker.io
+  VERSION:
+    sh: git describe --tags --exact-match 2>/dev/null || git describe --tags 2>/dev/null || echo "v0.0.0-$(git rev-parse --short HEAD)"
+
+tasks:
+  docker:
+    desc: Build a cross platform image
+    cmds:
+      - docker buildx build --tag "{{ .IMAGE }}:latest" --tag "{{ .IMAGE }}:{{ .VERSION }}" --platform linux/arm/v7,linux/amd64 .
+
+  docker-push:
+    desc: Build a cross platform image and push to {{ .REGISTRY }}
+    cmds:
+      - docker buildx build --push --tag "{{ .IMAGE }}:latest" --tag "{{ .IMAGE }}:{{ .VERSION }}" --platform linux/arm/v7,linux/amd64 .
+
+  lint:
+    desc: Lint with golangci-lint
+    cmds:
+      - golangci-lint run ./... --enable revive,unparam,misspell --timeout 30s

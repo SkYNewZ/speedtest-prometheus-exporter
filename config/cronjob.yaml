@@ -1,0 +1,47 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  namespace: monitoring
+  name: speedtest
+  labels:
+    app.kubernetes.io/name: speedtest
+    app.kubernetes.io/part-of: speedtest-prometheus-exporter
+    app.kubernetes.io/managed-by: kubectl
+spec:
+  schedule: '*/10 * * * *'
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    metadata:
+      name: speedtest
+      labels:
+        app.kubernetes.io/name: speedtest
+        app.kubernetes.io/part-of: speedtest-prometheus-exporter
+        app.kubernetes.io/managed-by: kubectl
+    spec:
+      template:
+        metadata:
+          name: speedtest
+          labels:
+            app.kubernetes.io/name: speedtest
+            app.kubernetes.io/part-of: speedtest-prometheus-exporter
+            app.kubernetes.io/managed-by: kubectl
+        spec:
+          serviceAccountName: speedtest-prometheus-exporter
+          restartPolicy: Never
+          containers:
+            - image: skynewz/speedtest-prometheus-exporter
+              imagePullPolicy: Always
+              name: speedtest
+              args:
+                - speedtest
+                - --server
+                - "http://speedtest-prometheus-exporter:3100"
+              resources:
+                requests:
+                  memory: 128Mi
+                  cpu: 100m
+                limits:
+                  memory: 128Mi
+                  cpu: 100m

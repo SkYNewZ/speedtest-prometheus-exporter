@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: speedtest-prometheus-exporter
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/name: speedtest-prometheus-exporter
+    app.kubernetes.io/part-of: speedtest-prometheus-exporter
+    app.kubernetes.io/managed-by: kubectl
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: speedtest-prometheus-exporter
+      app.kubernetes.io/part-of: speedtest-prometheus-exporter
+  template:
+    metadata:
+      name: speedtest-prometheus-exporter
+      labels:
+        app.kubernetes.io/name: speedtest-prometheus-exporter
+        app.kubernetes.io/part-of: speedtest-prometheus-exporter
+        app.kubernetes.io/managed-by: kubectl
+    spec:
+      serviceAccountName: speedtest-prometheus-exporter
+      containers:
+        - image: skynewz/speedtest-prometheus-exporter
+          name: exporter
+          imagePullPolicy: Always
+          args:
+            - server
+          ports:
+            - name: web
+              containerPort: 3100
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: web
+            failureThreshold: 3
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 3
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: web
+            failureThreshold: 3
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 3
+          resources:
+            requests:
+              memory: 128Mi
+              cpu: 100m
+            limits:
+              memory: 128Mi
+              cpu: 100m
